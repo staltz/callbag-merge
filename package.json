@@ -1,7 +1,12 @@
 {
   "name": "callbag-merge",
   "version": "1.0.0",
-  "description": "Callbag factory that merges data from multiple callbag sources",
+  "description":
+    "Callbag factory that merges data from multiple callbag sources",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/staltz/callbag-merge.git"
+  },
   "main": "index.js",
   "scripts": {
     "test": "tape test.js"
