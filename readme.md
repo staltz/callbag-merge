@@ -13,12 +13,12 @@ const merge = require('callbag-merge');
 
 const source = merge(interval(100), interval(350));
 
-source(0, observe(x => console.log(x)); // 0
-                                        // 1
-                                        // 2
-                                        // 0
-                                        // 3
-                                        // 4
-                                        // 5
-                                        // ...
+source(0, observe(x => console.log(x))); // 0
+                                         // 1
+                                         // 2
+                                         // 0
+                                         // 3
+                                         // 4
+                                         // 5
+                                         // ...
 ```
