@@ -8,12 +8,12 @@ Callbag factory that merges data from multiple callbag sources. Works well liste
 
 ```js
 const interval = require('callbag-interval');
-const observe = require('callbag-observe');
+const forEach = require('callbag-for-each');
 const merge = require('callbag-merge');
 
 const source = merge(interval(100), interval(350));
 
-observe(x => console.log(x))(source); // 0
+forEach(x => console.log(x))(source); // 0
                                       // 1
                                       // 2
                                       // 0
