@@ -166,3 +166,46 @@ test('it returns a source that disposes upon upwards END', t => {
     t.end();
   }, 700);
 });
+
+test('all sources get requests from sinks', t => {
+  let history = [];
+  const report = (name,dir,t,d) => t !== 0 && history.push([name,dir,t,d]);
+
+  const source1 = makeMockCallbag('source1', report, true);
+  const source2 = makeMockCallbag('source2', report, true);
+  const source3 = makeMockCallbag('source3', report, true);
+  const sink = makeMockCallbag('sink');
+
+  merge(source1, source2, source3)(0, sink);
+
+  sink.emit(1);
+  sink.emit(2);
+
+  t.deepEqual(history, [
+    ['source1', 'fromDown', 1, undefined],
+    ['source2', 'fromDown', 1, undefined],
+    ['source3', 'fromDown', 1, undefined],
+    ['source1', 'fromDown', 2, undefined],
+    ['source2', 'fromDown', 2, undefined],
+    ['source3', 'fromDown', 2, undefined],
+  ], 'sources all get requests from sink');
+
+  t.end();
+});
+
+function makeMockCallbag(name, report=()=>{}, isSource) {
+  if (report === true) {
+    isSource = true;
+    report = ()=>{};
+  }
+  let talkback;
+  let mock = (t, d) => {
+    report(name, 'fromUp', t, d);
+    if (t === 0){
+      talkback = d;
+      if (isSource) talkback(0, (st, sd) => report(name, 'fromDown', st, sd));
+    }
+  };
+  mock.emit = (t, d) => talkback(t, d);
+  return mock;
+}
