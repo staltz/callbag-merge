@@ -6,8 +6,8 @@ function merge(...sources) {
     let startCount = 0;
     let endCount = 0;
     const talkback = t => {
-      if (t !== 2) return;
-      for (let i = 0; i < n; i++) sourceTalkbacks[i](2);
+      if (t === 0) return;
+      for (let i = 0; i < n; i++) sourceTalkbacks[i](t);
     };
     for (let i = 0; i < n; i++) {
       sources[i](0, (t, d) => {
