@@ -35,14 +35,15 @@ function merge(...sources) {
     let endCount = 0;
     const talkback = t => {
       if (t === 0) return;
-      for (let i = 0; i < n; i++) sourceTalkbacks[i](t);
+      for (let i = 0; i < n; i++) sourceTalkbacks[i] && sourceTalkbacks[i](t);
     };
     for (let i = 0; i < n; i++) {
       sources[i](0, (t, d) => {
         if (t === 0) {
           sourceTalkbacks[i] = d;
-          if (++startCount === n) sink(0, talkback);
+          if (++startCount === 1) sink(0, talkback);
         } else if (t === 2) {
+          sourceTalkbacks[i] = void 0;
           if (++endCount === n) sink(2);
         } else sink(t, d);
       });

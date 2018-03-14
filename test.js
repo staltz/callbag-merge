@@ -167,6 +167,151 @@ test('it returns a source that disposes upon upwards END', t => {
   }, 700);
 });
 
+test('it greets the sink as soon as the first member-source greets', t => {
+  t.plan(11);
+  const downwardsExpectedType = [
+    [0, 'function'],
+    [1, 'number'],
+    [1, 'number'],
+    [1, 'string'],
+    [2, 'undefined'],
+  ];
+  const downwardsExpected = [10, 20, 'a'];
+  let sinkGreeted = false;
+
+  function quickSource(start, sink) {
+    if (start !== 0) return;
+    t.equals(sinkGreeted, false, 'sink not yet greeted before any member-source greets');
+    sink(0, quickSource);
+    t.equals(sinkGreeted, true, 'sink greeted right after quick member-source greets');
+    sink(1, 10);
+    sink(1, 20);
+    sink(2);
+  }
+
+  function slowSource(start, sink) {
+    if (start !== 0) return;
+    setTimeout(() => {
+      sink(0, slowSource);
+      sink(1, 'a');
+      sink(2);
+    }, 50);
+  }
+
+  function sink(type, data) {
+    const et = downwardsExpectedType.shift();
+    t.deepEquals([type, typeof data], et, 'downwards type is expected: ' + et);
+    if (type === 0) {
+      sinkGreeted = true;
+    }
+    if (type === 1) {
+      const e = downwardsExpected.shift();
+      t.equals(data, e, 'downwards data is expected: ' + e);
+    }
+  }
+
+  const source = merge(quickSource, slowSource);
+  source(0, sink);
+
+  setTimeout(() => {
+    t.pass('nothing else happens');
+    t.end();
+  }, 500);
+});
+
+test('it merges sync listenable sources, resilient to greet/terminate race conditions, part 1', t => {
+  t.plan(9);
+  const downwardsExpectedType = [
+    [0, 'function'],
+    [1, 'number'],
+    [1, 'number'],
+    [1, 'string'],
+    [2, 'undefined'],
+  ];
+  const downwardsExpected = [10, 20, 'a'];
+
+  function sourceA(start, sink) {
+    if (start !== 0) return;
+    sink(0, sourceA);
+    sink(1, 10);
+    sink(1, 20);
+    sink(2);
+  }
+
+  function sourceB(start, sink) {
+    if (start !== 0) return;
+    sink(0, sourceB);
+    setTimeout(() => {
+      sink(1, 'a');
+      sink(2);
+    }, 50);
+  }
+
+  function sink(type, data) {
+    const et = downwardsExpectedType.shift();
+    t.deepEquals([type, typeof data], et, 'downwards type is expected: ' + et);
+    if (type === 1) {
+      const e = downwardsExpected.shift();
+      t.equals(data, e, 'downwards data is expected: ' + e);
+    }
+  }
+
+  const source = merge(sourceA, sourceB);
+  source(0, sink);
+
+  setTimeout(() => {
+    t.pass('nothing else happens');
+    t.end();
+  }, 500);
+});
+
+test('it merges sync listenable sources, resilient to greet/terminate race conditions, part 2', t => {
+  t.plan(9);
+  const downwardsExpectedType = [
+    [0, 'function'],
+    [1, 'number'],
+    [1, 'number'],
+    [1, 'string'],
+    [2, 'undefined'],
+  ];
+  const downwardsExpected = [10, 20, 'a'];
+
+  function sourceA(start, sink) {
+    if (start !== 0) return;
+    sink(0, sourceA);
+    sink(1, 10);
+    sink(1, 20);
+    sink(2);
+  }
+
+  function sourceB(start, sink) {
+    if (start !== 0) return;
+    sink(0, sourceB);
+    setTimeout(() => {
+      sink(1, 'a');
+      sink(2);
+    }, 50);
+  }
+
+  function sink(type, data) {
+    const et = downwardsExpectedType.shift();
+    t.deepEquals([type, typeof data], et, 'downwards type is expected: ' + et);
+    if (type === 1) {
+      const e = downwardsExpected.shift();
+      t.equals(data, e, 'downwards data is expected: ' + e);
+    }
+  }
+
+  const source = merge(sourceB, sourceA);
+  source(0, sink);
+
+  setTimeout(() => {
+    t.pass('nothing else happens');
+    t.end();
+  }, 500);
+});
+
+
 test('all sources get requests from sinks', t => {
   let history = [];
   const report = (name,dir,t,d) => t !== 0 && history.push([name,dir,t,d]);
