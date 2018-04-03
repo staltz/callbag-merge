@@ -30,7 +30,7 @@ function merge(...sources) {
   return (start, sink) => {
     if (start !== 0) return;
     const n = sources.length;
-    const sourceTalkbacks = Array(n);
+    const sourceTalkbacks = new Array(n);
     let startCount = 0;
     let endCount = 0;
     const talkback = t => {
