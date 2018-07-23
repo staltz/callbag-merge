@@ -44,6 +44,12 @@ function merge(...sources) {
         if (t === 0) {
           sourceTalkbacks[i] = d;
           if (++startCount === 1) sink(0, talkback);
+        } else if (t === 2 && d) {
+          for (let j = 0; j < n; j++) {
+            if (i === j) continue;
+            sourceTalkbacks[j] && sourceTalkbacks[j](2);
+          }
+          sink(2, d);
         } else if (t === 2) {
           sourceTalkbacks[i] = void 0;
           if (++endCount === n) sink(2);
