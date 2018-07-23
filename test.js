@@ -1,5 +1,5 @@
 const test = require('tape');
-const merge = require('./readme');
+const merge = require('.');
 
 test('it merges one async finite listenable source', t => {
   t.plan(14);
