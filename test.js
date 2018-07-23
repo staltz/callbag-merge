@@ -167,6 +167,88 @@ test('it returns a source that disposes upon upwards END', t => {
   }, 700);
 });
 
+test('it errors when one of the sources errors', t => {
+  t.plan(21);
+  const upwardsExpectedA = [[0, 'function']];
+  const upwardsExpectedB = [[0, 'function'], [2, 'undefined']];
+  const downwardsExpectedType = [
+    [0, 'function'],
+    [1, 'number'],
+    [1, 'number'],
+    [1, 'number'],
+    [2, 'string'],
+  ];
+  const downwardsExpected = [11, 101, 12, 'err'];
+
+  function makeSourceA() {
+    let id;
+    let count = 0;
+    const sourceA = (type, data) => {
+      const e = upwardsExpectedA.shift();
+      t.equals(type, e[0], 'upwards type is expected: ' + e[0]);
+      t.equals(typeof data, e[1], 'upwards data is expected: ' + e[1]);
+      if (type === 0) {
+        const sink = data;
+        id = setInterval(() => {
+          sink(1, ++count + 10);
+          if (count < 2) {
+            return;
+          }
+          clearInterval(id);
+          sink(2, 'err');
+        }, 20);
+        sink(0, sourceA);
+      } else if (type === 2) {
+        t.fail('Errored source should not receive unsubscribing 2 from merge.');
+      }
+    };
+    return sourceA;
+  }
+
+  function makeSourceB() {
+    let id;
+    let count = 0
+    const sourceB = (type, data) => {
+      const e = upwardsExpectedB.shift();
+      t.equals(type, e[0], 'upwards type is expected: ' + e[0]);
+      t.equals(typeof data, e[1], 'upwards data is expected: ' + e[1]);
+      if (type === 0) {
+        const sink = data;
+        id = setInterval(() => {
+          sink(1, ++count + 100);
+        }, 30);
+        sink(0, sourceB);
+      } else if (type === 2) {
+        clearInterval(id);
+      }
+    };
+    return sourceB;
+  }
+
+  function makeSink(type, data) {
+    return (type, data) => {
+      const et = downwardsExpectedType.shift();
+      t.equals(type, et[0], 'downwards type is expected: ' + et[0]);
+      t.equals(typeof data, et[1], 'downwards data type is expected: ' + et[1]);
+      if (type === 0) {
+        talkback = data;
+      } else {
+        const e = downwardsExpected.shift();
+        t.equals(data, e, 'downwards data is expected: ' + e);
+      }
+    };
+  }
+
+  const source = merge(makeSourceA(), makeSourceB());
+  const sink = makeSink();
+  source(0, sink);
+
+  setTimeout(() => {
+    t.pass('nothing else happens');
+    t.end();
+  }, 700);
+});
+
 test('it greets the sink as soon as the first member-source greets', t => {
   t.plan(11);
   const downwardsExpectedType = [
