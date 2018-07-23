@@ -51,4 +51,4 @@ function merge(...sources) {
   };
 }
 
-module.exports = merge;
+export default merge;
