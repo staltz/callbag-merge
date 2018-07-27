@@ -34,7 +34,6 @@ function merge(...sources) {
     let startCount = 0;
     let endCount = 0;
     const talkback = (t, d) => {
-      if (t === 0) return;
       for (let i = 0; i < n; i++) sourceTalkbacks[i] && sourceTalkbacks[i](t, d);
     };
     for (let i = 0; i < n; i++) {
