@@ -1,5 +1,5 @@
 const test = require('tape');
-const merge = require('./readme');
+const merge = require('.');
 
 test('it merges one async finite listenable source', t => {
   t.plan(14);
@@ -385,6 +385,28 @@ test('all sources get requests from sinks', t => {
     ['source2', 'fromDown', 2, undefined],
     ['source3', 'fromDown', 2, undefined],
   ], 'sources all get requests from sink');
+
+  t.end();
+});
+
+test('all sources get subscription errors from sink', t => {
+  let history = [];
+  const report = (name,dir,t,d) => t !== 0 && history.push([name,dir,t,d]);
+
+  const source1 = makeMockCallbag('source1', report, true);
+  const source2 = makeMockCallbag('source2', report, true);
+  const source3 = makeMockCallbag('source3', report, true);
+  const sink = makeMockCallbag('sink');
+
+  merge(source1, source2, source3)(0, sink);
+
+  sink.emit(2, 'err');
+
+  t.deepEqual(history, [
+    ['source1', 'fromDown', 2, 'err'],
+    ['source2', 'fromDown', 2, 'err'],
+    ['source3', 'fromDown', 2, 'err'],
+  ], 'all sources get errors from sink');
 
   t.end();
 });
