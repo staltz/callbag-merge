@@ -33,10 +33,13 @@ function merge(...sources) {
     const sourceTalkbacks = new Array(n);
     let startCount = 0;
     let endCount = 0;
+    let disposed = false;
     const talkback = (t, d) => {
+      if (t === 2) disposed = true;
       for (let i = 0; i < n; i++) sourceTalkbacks[i] && sourceTalkbacks[i](t, d);
     };
     for (let i = 0; i < n; i++) {
+      if (disposed) return;
       sources[i](0, (t, d) => {
         if (t === 0) {
           sourceTalkbacks[i] = d;

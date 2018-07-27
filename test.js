@@ -311,6 +311,57 @@ test('it merges sync listenable sources, resilient to greet/terminate race condi
   }, 500);
 });
 
+test('it merges sync listenable sources, resilient to greet/disposal race conditions', t => {
+  t.plan(6);
+  const downwardsExpectedType = [
+    [0, 'function'],
+    [1, 'number'],
+    [1, 'number'],
+  ];
+  const downwardsExpected = [10, 20];
+
+  function sourceA(start, sink) {
+    if (start !== 0) return;
+    sink(0, sourceA);
+    sink(1, 10);
+    sink(1, 20);
+  }
+
+  function sourceB(start, sink) {
+    if (start !== 0) return;
+    t.fail('sourceB should not get subscribed.');
+    sink(0, sourceB);
+    sink(1, 'a');
+  }
+
+  const makeSink = () => {
+    let limit = 2;
+    let talkback;
+    return (type, data) => {
+      const et = downwardsExpectedType.shift();
+      t.deepEquals([type, typeof data], et, 'downwards type is expected: ' + et);
+      if (type === 0) {
+        talkback = data;
+      }
+      if (type === 1) {
+        const e = downwardsExpected.shift();
+        t.equals(data, e, 'downwards data is expected: ' + e);
+
+        if (--limit === 0) {
+          talkback(2);
+        }
+      }
+    }
+  };
+
+  const source = merge(sourceA, sourceB);
+  source(0, makeSink());
+
+  setTimeout(() => {
+    t.pass('nothing else happens');
+    t.end();
+  }, 500);
+});
 
 test('all sources get requests from sinks', t => {
   let history = [];
