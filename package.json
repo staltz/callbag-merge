@@ -1,6 +1,6 @@
 {
   "name": "callbag-merge",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Callbag factory that merges data from multiple callbag sources",
   "repository": {
     "type": "git",
